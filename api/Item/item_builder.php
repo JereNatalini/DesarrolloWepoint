@@ -8,10 +8,12 @@
         }
         
         public function buildItem(){
-            return new item($this->attributes['name'],
+            return new item($this->attribute['item_id_zoho'],
+                            $this->attributes['name'],
                             $this->attributes['sku'],
                             $this->attributes['description'],
-                            $this->attributes['unit']);
+                            $this->attributes['unit'],
+                            $this->attributes['quantity']);
         }
 
     }    

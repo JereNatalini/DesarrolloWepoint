@@ -15,7 +15,7 @@
 
     Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=zohoapi', 'root', ''));
     
-    Flight::route(' /po', function() {
+    Flight::route('POST /po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
     
@@ -40,37 +40,41 @@
             //Verificar si el item existe en la base de datos
             $existing_item = getItem($item_data['sku']);
 
-            if(!$existing_item) {
-                //buildear para post en zoho
-            /* 
+            if($existing_item){
+                print_r('El producto ya existe en la base de datos: ' . $item_data['name']);
+                
                 $item_builder = new ItemBuilder();
-        
+                $item_builder->set('name', $existing_item['name']);
+                $item_builder->set('sku', $existing_item['sku']);
+                $item_builder->set('description', $existing_item['description']);
+                $item_builder->set('unit', $existing_item['unit']);
+                $item_builder->set('quantity', $item_data['quantity']);
+
+            }
+            else
+            {
+                $item_builder = new ItemBuilder();
+
                 $item_builder->set('name', $item_data['name']);
                 $item_builder->set('sku', $item_data['sku']);
                 $item_builder->set('description', $item_data['description']);
                 $item_builder->set('unit', $item_data['unit']);
 
-                item_builder encodeado
-                response = funcion para postear en el zoho($item_builder encodeado)
-                $item_builder->set('item_id_zoho', respones['item_id'])
+                //Post al zoho con los parametros de arriba
                 
-            
-            
-            */
-                insertItem($item_data);
+                //Responde del zoho, de ahi sacamos el item id
+                $item_builder->set('item_id_zoho', $response['item_id']);
+                //Seteamos el item id y la cantidad con el builder
+                $item_builder->set('quantity', $item_data['quantity']);
+                
+
+                insertItem($item_builder->buildItem());
             }
-            else{
-                error_log('El producto ya existe en la base de datos: ' . $item_data['name']);
-            }
-        
-            $item_builder = new ItemBuilder();
-        
-            $item_builder->set('name', $item_data['name']);
-            $item_builder->set('sku', $item_data['sku']);
-            $item_builder->set('description', $item_data['description']);
-            $item_builder->set('unit', $item_data['unit']);
+
             // Construir el Item y agregarlo al PurchaseOrderBuilder
             $purchase_order_builder->addItem($item_builder->buildItem());
+
+            //Guardar en la DB
         }
         
     
@@ -88,12 +92,13 @@
     }
     
     // Función para insertar un nuevo producto en la base de datos
-    function insertItem($item_data) {
-        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit) VALUES (?, ?, ?, ?)');
-        $statement->bindParam(1, $item_data['sku'], PDO::PARAM_STR);
-        $statement->bindParam(2, $item_data['name'], PDO::PARAM_STR);
-        $statement->bindParam(3, $item_data['description'], PDO::PARAM_STR);
-        $statement->bindParam(4, $item_data['unit'], PDO::PARAM_STR);
+    function insertItem($item_builder) {
+        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit, item_id_zoho) VALUES (?, ?, ?, ?,?)');
+        $statement->bindParam(1, $item_builder['sku'], PDO::PARAM_STR);
+        $statement->bindParam(2, $item_builder['name'], PDO::PARAM_STR);
+        $statement->bindParam(3, $item_builder['description'], PDO::PARAM_STR);
+        $statement->bindParam(4, $item_builder['unit'], PDO::PARAM_STR);
+        $statement->bindParam(5, $item_builder['item_id_zoho'], PDO::PARAM_BIGINT);
         $statement->execute();
     }
     
