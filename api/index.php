@@ -63,7 +63,7 @@
                 //Post al zoho con los parametros de arriba
                 
                 //Responde del zoho, de ahi sacamos el item id
-                $item_builder->set('item_id_zoho', $response['item_id']);
+                $item_builder->set('item_id_zoho', $response['item_id']);//El postman devuelve que esto no anda porq falta un pedazo de codigo
                 //Seteamos el item id y la cantidad con el builder
                 $item_builder->set('quantity', $item_data['quantity']);
                 
