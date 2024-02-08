@@ -15,7 +15,7 @@
 
     Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'root', ''));
     
-    Flight::route('POST desarrollowepoint/api/po', function() {
+    Flight::route('POST /po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
     
@@ -41,7 +41,7 @@
             $existing_item = getItem($item_data['sku']);
 
             if($existing_item){
-                print_r('El producto ya existe en la base de datos: ' . $item_data['name']);
+                echo json_encode('El producto ya existe en la base de datos: ' . $item_data['name']);
                 
                 $item_builder = new ItemBuilder();
                 $item_builder->set('name', $existing_item['name']);
