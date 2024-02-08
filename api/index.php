@@ -13,9 +13,9 @@
         return $token;
     }
 
-    Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=zohoapi', 'root', ''));
+    Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'root', ''));
     
-    Flight::route(' /po', function() {
+    Flight::route('POST desarrollowepoint/api/po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
     
