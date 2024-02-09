@@ -45,9 +45,9 @@
                 echo json_encode('El producto ya existe en la base de datos: ' . $item_data['name']);
                 
                 $item_builder = new ItemBuilder();
-                $item_builder->set('name', $existing_item['name']);
+                $item_builder->set('name', $existing_item['item_name']);
                 $item_builder->set('sku', $existing_item['sku']);
-                $item_builder->set('description', $existing_item['description']);
+                $item_builder->set('description', $existing_item['item_desc']);
                 $item_builder->set('unit', $existing_item['unit']);
                 $item_builder->set('quantity', $item_data['quantity']);
 
@@ -86,7 +86,7 @@
         // Construir la purchaseOrder
         
         $purchase_order = $purchase_order_builder->buildPO();
-        $JsonPurchaseorder = $purchase_order->toJson();
+        $JsonPurchaseorder = json_encode($purchase_order);
 
         insertOrdenDeCompra($purchase_order['vendor_id'], $JsonPurchaseorder);
 
