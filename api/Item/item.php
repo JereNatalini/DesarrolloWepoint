@@ -14,7 +14,8 @@
             $this->sku = $sku;
             $this->description = $description;
             $this->unit = $unit;
-            $this ->quantity = $quantity;
+            $this->quantity = $quantity;
+
         }
         
     }

@@ -63,7 +63,9 @@
                 //Post al zoho con los parametros de arriba
                 
                 //Responde del zoho, de ahi sacamos el item id
-                $item_builder->set('item_id_zoho', $response['item_id']);//El postman devuelve que esto no anda porq falta un pedazo de codigo
+                $jsonItem = $item_builder->toJson();
+                $item_id_zoho = postZohoProductos($jsonItem);
+                $item_builder->set('item_id_zoho', $item_id_zoho);
                 //Seteamos el item id y la cantidad con el builder
                 $item_builder->set('quantity', $item_data['quantity']);
                 
@@ -75,11 +77,26 @@
             $purchase_order_builder->addItem($item_builder->buildItem());
 
             //Guardar en la DB
+
         }
         
     
         // Construir la purchaseOrder
+        
         $purchase_order = $purchase_order_builder->buildPO();
+        $JsonPurchaseorder = $purchase_order->toJson();
+
+        insertOrdenDeCompra($purchase_order['vendor_id'], $JsonPurchaseorder);
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------
+        
+
+        //Faltaria crear un boton que llame a la funcion de Post zoho y creee una orden de compra 
+
+
+        //----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
         Flight::json(['status' => 'success']);
     });
 
@@ -102,6 +119,14 @@
         $statement->execute();
     }
     
+    function insertOrdenDeCompra ($id_Cliente, $purchase_order){
+        $statement = Flight::db()->prepare('INSERT INTO Orden_de_compra (Id_cliente, orden_de_compra) VALUES (?, ?)');
+        $statement->bindParam(1, $id_Cliente, PDO::PARAM_STR);
+        $statement->bindParam(2, $purchase_order, PDO::PARAM_STR);
+        $statement->execute();
+    }
+
+
     Flight::start();
 
 ?>
