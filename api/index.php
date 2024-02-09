@@ -118,7 +118,9 @@
         $statement->bindParam(5, $item_builder['item_id_zoho'], PDO::PARAM_BIGINT);
         $statement->execute();
     }
-    
+
+
+    //Orden para insertar orden de compra
     function insertOrdenDeCompra ($id_Cliente, $purchase_order){
         $statement = Flight::db()->prepare('INSERT INTO Orden_de_compra (Id_cliente, orden_de_compra) VALUES (?, ?)');
         $statement->bindParam(1, $id_Cliente, PDO::PARAM_STR);
