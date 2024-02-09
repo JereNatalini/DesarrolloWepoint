@@ -1,42 +1,13 @@
 <?php
-    class ZohoApi {
-        function postZoho($PO_post_data){
-            $organization_id = '753793595';
-            $url = "https://www.zohoapis.com/inventory/v1/items?organization_id={$organization_id}";
-        
-            $headers = array(
-                "Authorization: Zoho-oauthtoken ". devolverTokenZoho(),
-                'Content-Type: application/json'
-            );
-        
-            $data = $PO_post_data; //Purchase Order, esto seria como el body parameter
-        
-            $ch = curl_init($url);
-        
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        
-            $response = curl_exec($ch);
-        
-            if (curl_errno($ch)) {
-                echo 'Error en la consulta cURL: ' . curl_error($ch);
-            }
-        
-            curl_close($ch);
-        
-            return $response;
-        }
-    }
 
-    class ZohoApi {
+    
         function postZohoProductos($JsonProducto){
             $organization_id = '753793595';
             $url = "https://www.zohoapis.com/inventory/v1/items?organization_id={$organization_id}";
+            $ch = curl_init($url);
 
             $headers = array(
-                "Authorization: Zoho-oauthtoken ". devolverTokenZoho(),
+                "Authorization: Zoho-oauthtoken 1000.83f01a66569d84ab67f7a900e397c2bc.db899f8a410585f548182cab62b3f3a2" /*.returnTokenZoho()*/,
                 'Content-Type: application/json'
             );
 
@@ -53,10 +24,10 @@
 
             curl_close($ch);
 
-            return $response['item_id'];
+            $response_object = json_decode($response, true);
+
+            return $response_object;
         }
 
-        }
-    
 
 ?>

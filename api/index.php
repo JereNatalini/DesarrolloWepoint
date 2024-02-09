@@ -4,7 +4,8 @@
     require 'Item/item.php';
     require 'PurchaseOrder/purchase_order.php';
     require 'PurchaseOrder/po_builder.php';
-    
+    require 'Zoho/zoho_api.php';
+
     global $token;
     $token = '';
     
@@ -60,12 +61,13 @@
                 $item_builder->set('description', $item_data['description']);
                 $item_builder->set('unit', $item_data['unit']);
 
+                $item_builder->buildItem();
                 //Post al zoho con los parametros de arriba
                 
                 //Responde del zoho, de ahi sacamos el item id
-                $jsonItem = $item_builder->toJson();
+                $jsonItem = json_encode($item_builder);
                 $item_id_zoho = postZohoProductos($jsonItem);
-                $item_builder->set('item_id_zoho', $item_id_zoho);
+                $item_builder->set('item_id_zoho', $item_id_zoho['item']['item_id']);
                 //Seteamos el item id y la cantidad con el builder
                 $item_builder->set('quantity', $item_data['quantity']);
                 
