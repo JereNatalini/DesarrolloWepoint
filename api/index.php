@@ -122,6 +122,15 @@
         $statement->execute();
     }
 
+    function insertOrdenDeCompra ($id_Cliente, $purchase_order){
+        $statement = Flight::db()->prepare('INSERT INTO Orden_de_compra (Id_cliente, orden_de_compra) VALUES (?, ?)');
+        $statement->bindParam(1, $id_Cliente, PDO::PARAM_STR);
+        $statement->bindParam(2, $purchase_order, PDO::PARAM_STR);
+        $statement->execute();
+    }
+
+
+
     Flight::route('POST /so', function(){
         $body_sale_order = Flight::request(); //validar atributos del body
         $sale_order_data = json_decode($$body_sale_order->getBody(), true);
