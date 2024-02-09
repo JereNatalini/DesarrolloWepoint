@@ -62,10 +62,12 @@
 
                 //Post al zoho con los parametros de arriba
                 
-                //Responde del zoho, de ahi sacamos el item id
+
+
+                //Response del zoho, de ahi sacamos el item id
                 $jsonItem = $item_builder->toJson();
                 $item_id_zoho = postZohoProductos($jsonItem);
-                $item_builder->set('item_id_zoho', $item_id_zoho);
+                $item_builder->set('item_id_zoho', $item_id_zoho['item']['item_id']);
                 //Seteamos el item id y la cantidad con el builder
                 $item_builder->set('quantity', $item_data['quantity']);
                 
