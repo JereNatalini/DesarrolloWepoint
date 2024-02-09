@@ -6,13 +6,15 @@
         private $description;
         private $unit; //Unidad de medida del item
         private $id_item_zoho;
+        private $quantity;
 
-        public function __construct($item_id_zoho,$name, $sku, $description, $unit){
+        public function __construct($item_id_zoho,$name, $sku, $description, $unit, $quantity){
             $this->item_id_zoho = $item_id_zoho;
             $this->name = $name;
             $this->sku = $sku;
             $this->description = $description;
             $this->unit = $unit;
+            $this ->quantity = $quantity;
         }
         
     }
