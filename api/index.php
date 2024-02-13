@@ -39,46 +39,45 @@
         foreach ($po_data['line_items'] as $item_data) {
             
             //Verificar si el item existe en la base de datos
-            $existing_item = getItem($item_data['sku']);
+            $existing_item_data = getItem($item_data['sku']);
 
-            if($existing_item){
-                echo json_encode('El producto ya existe en la base de datos: ' . $item_data['name']);
+            if ($existing_item_data) {
+                // Crear un nuevo objeto Item y luego usar los métodos setters
+                $existing_item = new Item($existing_item_data['item_name']);
+                $existing_item
+                    ->setSku($existing_item_data['sku'])
+                    ->setDescription($existing_item_data['item_desc'])
+                    ->setUnit($existing_item_data['unit'])
+                    ->setIdItemZoho($existing_item_data['zoho_item_id'])
+                    ->setQuantity($item_data['quantity']);
                 
-                $item_builder = new ItemBuilder();
-                $item_builder->set('name', $existing_item['item_name']);
-                $item_builder->set('sku', $existing_item['sku']);
-                $item_builder->set('description', $existing_item['item_desc']);
-                $item_builder->set('unit', $existing_item['unit']);
-                $item_builder->set('quantity', $item_data['quantity']);
-
+                // Agregarlo al PurchaseOrderBuilder
+                $purchase_order_builder->addItem($existing_item);
             }
             else
             {
+                //Si no existe crear el item para insertarlo a zoho
+                $item_zoho = new Item($item_data['name']);
+                //Post al zoho con los parametros de arriba
+                
+                //Response del zoho, de ahi sacamos el item id
+                $jsonItem = $item_zoho->toJsonInsertItemZoho();
+                $item_id_zoho = postZohoProductos($jsonItem);
+                
                 $item_builder = new ItemBuilder();
-
+                $item_builder->set('item_id_zoho', $item_id_zoho['item']['item_id']);
                 $item_builder->set('name', $item_data['name']);
                 $item_builder->set('sku', $item_data['sku']);
                 $item_builder->set('description', $item_data['description']);
                 $item_builder->set('unit', $item_data['unit']);
-
-                $item_builder->buildItem();
-                //Post al zoho con los parametros de arriba
-                
-                //Responde del zoho, de ahi sacamos el item id
-                $jsonItem = json_encode($item_builder);
-                $item_id_zoho = postZohoProductos($jsonItem);
-                $item_builder->set('item_id_zoho', $item_id_zoho['item']['item_id']);
-                //Seteamos el item id y la cantidad con el builder
                 $item_builder->set('quantity', $item_data['quantity']);
                 
-
-                insertItem($item_builder->buildItem());
+                
+                // Construir el Item, guardarlo en la DB y agregarlo al PurchaseOrderBuilder
+                $item = $item_builder->buildItem();
+                insertItem($item);
+                $purchase_order_builder->addItem($item);
             }
-
-            // Construir el Item y agregarlo al PurchaseOrderBuilder
-            $purchase_order_builder->addItem($item_builder->buildItem());
-
-            //Guardar en la DB
 
         }
         
@@ -86,9 +85,9 @@
         // Construir la purchaseOrder
         
         $purchase_order = $purchase_order_builder->buildPO();
-        $JsonPurchaseorder = json_encode($purchase_order);
+        $JsonPurchaseorder = $purchase_order->toJson();
 
-        insertOrdenDeCompra($purchase_order['vendor_id'], $JsonPurchaseorder);
+        insertOrdenDeCompra($purchase_order->getVendorId(), $JsonPurchaseorder);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------
         
@@ -115,7 +114,7 @@
     
     // Función para insertar un nuevo producto en la base de datos
     function insertItem($item_builder) {
-        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit, item_id_zoho) VALUES (?, ?, ?, ?,?)');
+        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit, zoho_item_id) VALUES (?, ?, ?, ?,?)');
         $statement->bindParam(1, $item_builder['sku'], PDO::PARAM_STR);
         $statement->bindParam(2, $item_builder['name'], PDO::PARAM_STR);
         $statement->bindParam(3, $item_builder['description'], PDO::PARAM_STR);
@@ -124,10 +123,10 @@
         $statement->execute();
     }
 
-    function insertOrdenDeCompra ($id_Cliente, $purchase_order){
-        $statement = Flight::db()->prepare('INSERT INTO Orden_de_compra (Id_cliente, orden_de_compra) VALUES (?, ?)');
-        $statement->bindParam(1, $id_Cliente, PDO::PARAM_STR);
-        $statement->bindParam(2, $purchase_order, PDO::PARAM_STR);
+    function insertOrdenDeCompra ($vendor_id, $json_po){
+        $statement = Flight::db()->prepare('INSERT INTO ordenes_compra (vendor_id, json_po) VALUES (?, ?)');
+        $statement->bindParam(1, $vendor_id, PDO::PARAM_STR);
+        $statement->bindParam(2, $json_po, PDO::PARAM_STR);
         $statement->execute();
     }
 
