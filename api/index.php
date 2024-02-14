@@ -56,21 +56,18 @@
             }
             else
             {
+                $name = $item_data['name'];
+                $sku = $item_data['sku'];
                 //Si no existe crear el item para insertarlo a zoho
-                $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
+                $array_post_item_zoho = CreateProductArray($name, $sku);
                 //Post al zoho con los parametros de arriba
                 
                 //Response del zoho, de ahi sacamos el item id
-                $response = postZohoProductos($array_post_item_zoho);
+                $response = postZohoProductos(json_encode($array_post_item_zoho));
                 $item_id_zoho = json_decode($response, true);
-                if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
-                    // Acceder al atributo 'item_id'
-                    $itemId = $item_id_zoho['item']['item_id'];
-                
-                }
-                else{
-                    $itemId = "No posteo nada man";
-                }
+               
+                $itemId = $item_id_zoho['item']['item_id'];
+               
 
                 $item_posteado = new Item($item_data['name'], $item_data['sku']);
                 $item_posteado
@@ -169,6 +166,7 @@
     });
 
     //ADAPTAR METODO A DB
+    /*
     function insertSaleOrder($saleOrder){
         $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit) VALUES (?, ?, ?, ?)');
         $statement->bindParam(1, $item_data['sku'], PDO::PARAM_STR);
@@ -177,7 +175,7 @@
         $statement->bindParam(4, $item_data['unit'], PDO::PARAM_STR);
         $statement->execute();
     }
-    
+    */
     Flight::start();
 
 ?>
