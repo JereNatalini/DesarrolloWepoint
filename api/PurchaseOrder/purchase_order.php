@@ -101,7 +101,8 @@ private function generateLineItemsJson() {
         if ($item instanceof Item) {
             // Crear un array asociativo con 'item_id' y agregarlo al array final
             $lineItemsJsonArray[] = ["item_id" => $item->getIdItemZoho(),
-                                    "quantity" => $item->getQuantity()
+                                    "quantity" => $item->getQuantity(),
+                                    "name" => $item->getName()
                                     ]; // Ajusta según tu implementación de la clase Item
         }
     }

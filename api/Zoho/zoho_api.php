@@ -4,7 +4,7 @@
             $url = 'https://www.zohoapis.com/inventory/v1/items?organization_id=753793595';
         
             // Token de autorización
-            $token = 'Zoho-oauthtoken 1000.591d1fb12912672f0cd7166dbc3d4e2d.af85f96f4b71a05ec1112c4be3e92061';
+            $token = 'Zoho-oauthtoken 1000.8ca0a79eecd858f9310080635cc82971.8d51aeede6b671b31f560ff7a285d004';
         
             // Cabeceras de la solicitud
             $headers = [
@@ -31,9 +31,9 @@
             curl_close($curl);
         
             // Decodificar la respuesta JSON si es necesario
-            $responseData = json_decode($response, true);
+            
         
-            return $responseData;
+            return $response;
         }
         
         
