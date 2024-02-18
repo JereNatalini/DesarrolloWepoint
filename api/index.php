@@ -5,6 +5,7 @@
     require 'PurchaseOrder/purchase_order.php';
     require 'PurchaseOrder/po_builder.php';
     require 'Zoho/zoho_api.php';
+    require 'Zoho/test_zoho.php';
     require 'funciones.php';
 
     global $token;
@@ -59,15 +60,33 @@
                 $name = $item_data['name'];
                 $sku = $item_data['sku'];
                 //Si no existe crear el item para insertarlo a zoho
+                $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
+                
+
+                //Testeo dpara ver el json generado 
+                //insertTest("Test", $array_post_item_zoho);
+
+             
+            
+
                 $array_post_item_zoho = CreateProductArray($name, $sku);
                 //Post al zoho con los parametros de arriba
-                
+               
                 //Response del zoho, de ahi sacamos el item id
                 $response = postZohoProductos(json_encode($array_post_item_zoho));
                 $item_id_zoho = json_decode($response, true);
                
                 $itemId = $item_id_zoho['item']['item_id'];
                
+                if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
+                    // Acceder al atributo 'item_id'
+                    $itemId = $item_id_zoho['item']['item_id'];
+                
+                }
+                else{
+                    $itemId = "No posteo nada";
+                    
+                }
 
                 $item_posteado = new Item($item_data['name'], $item_data['sku']);
                 $item_posteado
@@ -97,6 +116,7 @@
         Flight::json(['status' => 'success']);
     });
 
+   
     function getItem($sku) {
         //Verificar que sea de la misma empresa
         $statement = Flight::db()->prepare('SELECT * FROM Items WHERE sku = ?');
@@ -105,6 +125,13 @@
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
     
+    Function getPurchaseOrder($Client_id) {
+        //Verificar que sea de la misma empresa
+        $statement = Flight::db()->prepare('SELECT * FROM Purchase_orders WHERE client_id = ?');
+        $statement->bindParam(1, $Client_id, PDO::PARAM_STR);
+        $statement->execute();
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
 
     // Función para insertar un nuevo producto en la base de datos
     function insertItem($item_builder) {
@@ -114,7 +141,7 @@
     
 
     function insertOrdenDeCompra ($vendor_id, $json_po){
-        $statement = Flight::db()->prepare('INSERT INTO ordenes_compra (vendor_id, json_po) VALUES (?, ?)');
+        $statement = Flight::db()->prepare('INSERT INTO Purchase_orders (client_id, purchase_order) VALUES (?, ?)');
         $statement->bindParam(1, $vendor_id, PDO::PARAM_STR);
         $statement->bindParam(2, $json_po, PDO::PARAM_STR);
         $statement->execute();
@@ -176,6 +203,23 @@
         $statement->execute();
     }
     */
+
+    Flight::route('GET /token', function() {
+        $request = Flight::request();
+        $get_data = json_decode($request->getBody(), true);
+
+        $id = $get_data['id'];
+        $email = $get_data['email'];
+
+        $token = generarTokenCliente($id ,$email);      
+
+
+        
+        Flight::json(['status' => 'success']);
+    });
+
+
+
     Flight::start();
 
 ?>

@@ -4,12 +4,12 @@
             $url = 'https://www.zohoapis.com/inventory/v1/items?organization_id=753793595';
         
             // Token de autorización
-            $token = 'Zoho-oauthtoken 1000.5c90b7bcb9d7f71e0cf20b64c8b21e3a.0a8d71248822079271fa4439becbbd5f';
+            $token = 'Zoho-oauthtoken 1000.c7831d0b7517ad373a973c974f6368db.bf6ebabf302e10a6148b86e9f77c945c';
         
             // Cabeceras de la solicitud
             $headers = [
                 'Authorization: ' . $token,
-                'Content-Type: application/json',
+                'Content-Type:application/json',
             ];
         
             // Configuración de cURL
