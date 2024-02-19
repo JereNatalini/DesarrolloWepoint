@@ -5,7 +5,7 @@
     require 'PurchaseOrder/purchase_order.php';
     require 'PurchaseOrder/po_builder.php';
     require 'Zoho/zoho_api.php';
-    require 'Zoho/test_zoho.php';
+    require 'TokenTest/testToken.php';
     require 'funciones.php';
 
     global $token;
@@ -204,18 +204,16 @@
     }
     */
 
-    Flight::route('GET /token', function() {
+    Flight::route('POST /token', function() {
         $request = Flight::request();
-        $get_data = json_decode($request->getBody(), true);
-
-        $id = $get_data['id'];
-        $email = $get_data['email'];
-
-        $token = generarTokenCliente($id ,$email);      
-
-
-        
-        Flight::json(['status' => 'success']);
+        $post_data = $request->data;
+    
+        $id = $post_data['id'];
+        $email = $post_data['email'];
+    
+        $token = generarTokenCliente($id, $email);
+        //$token = '0';
+        Flight::json(['status' => 'success', 'token' => $token]);
     });
 
 
