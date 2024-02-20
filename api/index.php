@@ -213,7 +213,14 @@
     
         $token = generarTokenCliente($id, $email);
         //$token = '0';
-        Flight::json(['status' => 'success', 'token' => $token]);
+        //Flight::json(['status' => 'success', 'token' => $token]);
+
+
+        $tokenDecode = decodificarToken($token);
+
+        //$tokenMail = $tokenDecode['email'];
+
+        Flight::json(['status' => 'success','token' => $token ,'token_Email' => $tokenDecode ]);
     });
 
 
