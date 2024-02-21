@@ -236,7 +236,7 @@
             }
             
         }
-        Flight::start();
+
     });
 
     //ADAPTAR METODO A DB
@@ -261,9 +261,40 @@
         Flight::json(['status' => 'success','token' => $token ,'token_Email' => $tokenDecode ]);
     });
 
+    
 
+
+    Flight::route('GET /datosPo', function() {
+        $db = Flight::db();
+
+        //Ejecutar una consula SQL
+        $statement = $db->query('SELECT * FROM ordenes_compra');
+
+        //Obtener los resultados de la tabla
+        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        //devolver los resultados como Json
+        Flight::json($result);
+
+    });
+
+    
+    Flight::route('GET /datosSo', function() {
+        $db = Flight::db();
+
+        //Ejecutar una consula SQL
+        $statement = $db->query('SELECT * FROM ordenes_venta');
+
+        //Obtener los resultados de la tabla
+        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        //devolver los resultados como Json
+        Flight::json($result);
+
+    });
 
     Flight::start();
+
 
 ?>
 
