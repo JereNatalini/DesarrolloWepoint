@@ -49,11 +49,11 @@
     
                 if ($existing_item_data) {
                     // Crear un nuevo objeto Item y luego usar los métodos setters
-                    $existing_item = new Item($existing_item_data['item_name'], $existing_item_data['sku']);
+                    $existing_item = new Item($existing_item_data['nombre'], $existing_item_data['sku']);
                     $existing_item
-                        ->setDescription($existing_item_data['item_desc'])
-                        ->setUnit($existing_item_data['unit'])
-                        ->setIdItemZoho($existing_item_data['zoho_item_id'])
+                        ->setDescription($existing_item_data['descripcion'])
+                        ->setUnit($existing_item_data['unidad'])
+                        ->setIdItemZoho($existing_item_data['item_id_zoho'])
                         ->setQuantity($item_data['quantity']);
                     
                     // Agregarlo al PurchaseOrderBuilder
@@ -66,21 +66,18 @@
                     //Si no existe crear el item para insertarlo a zoho
                     $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
                     
-    
                     //Testeo dpara ver el json generado 
                     //insertTest("Test", $array_post_item_zoho);
     
-                 
-                
-    
                     $array_post_item_zoho = CreateProductArray($name, $sku);
                     //Post al zoho con los parametros de arriba
-                   
                     //Response del zoho, de ahi sacamos el item id
                     $response = postZohoProductos(json_encode($array_post_item_zoho));
                     $item_id_zoho = json_decode($response, true);
                    
-                    $itemId = $item_id_zoho['item']['item_id'];
+                    //Flight::json( $response);
+                    //return;
+                   
                    
                     if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
                         // Acceder al atributo 'item_id'
@@ -88,7 +85,7 @@
                     
                     }
                     else{
-                        $itemId = "No posteo nada";
+                        Flight::halt(403, 'Error al tomar los datos del producto (No se pudo cargan en el sistema)');
                         
                     }
     
@@ -108,13 +105,12 @@
     
             }
             
-        
             // Construir la purchaseOrder
             
             $purchase_order = $purchase_order_builder->buildPO();
             $JsonPurchaseorder = $purchase_order->toJson();
     
-            insertOrdenDeCompra($purchase_order->getVendorId(), $JsonPurchaseorder);
+            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber(),$purchase_order->getVendorId(),$purchase_order->getDate()  ,$JsonPurchaseorder);
     
     
             Flight::json(['status' => 'success']);
@@ -132,7 +128,7 @@
    
     function getItem($sku) {
         //Verificar que sea de la misma empresa
-        $statement = Flight::db()->prepare('SELECT * FROM Items WHERE sku = ?');
+        $statement = Flight::db()->prepare('SELECT * FROM Productos WHERE sku = ?');
         $statement->bindParam(1, $sku, PDO::PARAM_STR);
         $statement->execute();
         return $statement->fetch(PDO::FETCH_ASSOC);
@@ -140,7 +136,7 @@
     
     Function getPurchaseOrder($Client_id) {
         //Verificar que sea de la misma empresa
-        $statement = Flight::db()->prepare('SELECT * FROM Purchase_orders WHERE client_id = ?');
+        $statement = Flight::db()->prepare('SELECT * FROM Ordenes_compra WHERE client_id = ?');
         $statement->bindParam(1, $Client_id, PDO::PARAM_STR);
         $statement->execute();
         return $statement->fetch(PDO::FETCH_ASSOC);
@@ -148,20 +144,22 @@
 
     // Función para insertar un nuevo producto en la base de datos
     function insertItem($item_builder) {
-        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit, zoho_item_id) VALUES (?, ?, ?, ?, ?)');
+        $statement = Flight::db()->prepare('INSERT INTO Productos (sku, nombre, descripcion, unidad, item_id_zoho) VALUES (?, ?, ?, ?, ?)');
         $statement->execute([$item_builder->getSku(), $item_builder->getName(), $item_builder->getDescription(), $item_builder->getUnit(), $item_builder->getIdItemZoho()]);
     }
     
 
-    function insertOrdenDeCompra ($vendor_id, $json_po){
-        $statement = Flight::db()->prepare('INSERT INTO Purchase_orders (client_id, purchase_order) VALUES (?, ?)');
-        $statement->bindParam(1, $vendor_id, PDO::PARAM_STR);
-        $statement->bindParam(2, $json_po, PDO::PARAM_STR);
+    function insertOrdenDeCompra ($order_id ,$vendor_id, $fecha, $json_po){
+        $statement = Flight::db()->prepare('INSERT INTO Ordenes_compra (id_orden ,id_usuario, fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
+        $statement->bindParam(1, $order_id, PDO::PARAM_STR);
+        $statement->bindParam(2, $vendor_id, PDO::PARAM_STR);
+        $statement->bindParam(3, $fecha, PDO::PARAM_STR);
+        $statement->bindParam(4, $json_po, PDO::PARAM_STR);
         $statement->execute();
     }
 
     function clienExists($id_cliente, $email){
-        $statement = Flight::db()->prepare('SELECT * FROM clients WHERE client_id = ? AND email = ?');
+        $statement = Flight::db()->prepare('SELECT * FROM Usuarios WHERE id_usuario = ? AND email = ?');
         $statement->bindParam(1, $id_cliente, PDO::PARAM_STR);
         $statement->bindParam(2, $email, PDO::PARAM_STR);
         $statement->execute();
@@ -261,14 +259,12 @@
         Flight::json(['status' => 'success','token' => $token ,'token_Email' => $tokenDecode ]);
     });
 
-    
-
 
     Flight::route('GET /datosPo', function() {
         $db = Flight::db();
 
         //Ejecutar una consula SQL
-        $statement = $db->query('SELECT * FROM ordenes_compra');
+        $statement = $db->query('SELECT * FROM Ordenes_compra');
 
         //Obtener los resultados de la tabla
         $result = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -283,7 +279,7 @@
         $db = Flight::db();
 
         //Ejecutar una consula SQL
-        $statement = $db->query('SELECT * FROM ordenes_venta');
+        $statement = $db->query('SELECT * FROM Ordenes_venta');
 
         //Obtener los resultados de la tabla
         $result = $statement->fetchAll(PDO::FETCH_ASSOC);
