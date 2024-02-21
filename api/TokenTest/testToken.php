@@ -7,10 +7,6 @@ use Firebase\JWT\Key;
 Test para generar el token de autenticación 
 */
 
-// Cambiar en base a lo que hagamos nosotros 
-
-// Esto es para ver cómo funciona 
-
 function generarTokenCliente($id, $email){
     $time = time();
     $token = array(
@@ -21,22 +17,16 @@ function generarTokenCliente($id, $email){
             "email" => $email 
         ]
     );
-
     // La clave secreta es dfhsdfg34dfchs4xgsrsdry46
-    // LA clave secreta es EquipoDesarollo
-
     $jwt = JWT::encode($token, "dfhsdfg34dfchs4xgsrsdry46", 'HS256'); 
-
     echo '<pre>'; print_r($token); echo '</pre>';
-
     return $jwt;
 }
-
-
 function decodificarToken($jwt) {
     try {
         $decoded = JWT::decode($jwt, new key("dfhsdfg34dfchs4xgsrsdry46", 'HS256'));
-        return $decoded;
+        $jsonString = json_encode($decoded);
+        return (array) $decoded;
     } catch (Exception $e) {
         return null; // Retorna null si hay un error al decodificar el token
     }

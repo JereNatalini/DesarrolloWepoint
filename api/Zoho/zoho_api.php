@@ -4,7 +4,7 @@
             $url = 'https://www.zohoapis.com/inventory/v1/items?organization_id=753793595';
         
             // Token de autorización
-            $token = 'Zoho-oauthtoken 1000.458ac13dd133405d56c77b3b05563e73.114a1671a18c1115235e9b7be16a7650';
+            $token = 'Zoho-oauthtoken 1000.ca586083f5c6a50fed89f6d1da8744ed.e508fac08e4cb0728446acf9b0670b6f';
         
             // Cabeceras de la solicitud
             $headers = [
