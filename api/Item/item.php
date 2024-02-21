@@ -7,9 +7,8 @@ class Item {
     private $id_item_zoho;
     private $quantity;
 
-    public function __construct($name, $sku) {
+    public function __construct($name) {
         $this->name = $name;
-        $this->sku = $sku;
     }
 
     public function getName() {

@@ -1,6 +1,5 @@
 <?php
     require 'flight/Flight.php';
-    require 'Item/item_builder.php';
     require 'Item/item.php';
     require 'PurchaseOrder/purchase_order.php';
     require 'PurchaseOrder/po_builder.php';
@@ -49,8 +48,9 @@
     
                 if ($existing_item_data) {
                     // Crear un nuevo objeto Item y luego usar los métodos setters
-                    $existing_item = new Item($existing_item_data['nombre'], $existing_item_data['sku']);
+                    $existing_item = new Item($existing_item_data['nombre']);
                     $existing_item
+                        ->setSku($existing_item_data['sku'])
                         ->setDescription($existing_item_data['descripcion'])
                         ->setUnit($existing_item_data['unidad'])
                         ->setIdItemZoho($existing_item_data['item_id_zoho'])
@@ -65,18 +65,13 @@
                     $sku = $item_data['sku'];
                     //Si no existe crear el item para insertarlo a zoho
                     $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
-                    
-                    //Testeo dpara ver el json generado 
-                    //insertTest("Test", $array_post_item_zoho);
+
     
                     $array_post_item_zoho = CreateProductArray($name, $sku);
                     //Post al zoho con los parametros de arriba
                     //Response del zoho, de ahi sacamos el item id
                     $response = postZohoProductos(json_encode($array_post_item_zoho));
                     $item_id_zoho = json_decode($response, true);
-                   
-                    //Flight::json( $response);
-                    //return;
                    
                    
                     if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
@@ -89,8 +84,9 @@
                         
                     }
     
-                    $item_posteado = new Item($item_data['name'], $item_data['sku']);
+                    $item_posteado = new Item($item_data['name']);
                     $item_posteado
+                        ->setSku($item_data['sku'])
                         ->setName($item_data['name'])
                         ->setDescription($item_data['description'])
                         ->setUnit($item_data['unit'])
@@ -110,7 +106,7 @@
             $purchase_order = $purchase_order_builder->buildPO();
             $JsonPurchaseorder = $purchase_order->toJson();
     
-            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber(),$purchase_order->getVendorId(),$purchase_order->getDate()  ,$JsonPurchaseorder);
+            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber()/*NO HACE FALTA PASAR ESTE VALOR PORQ EN EL ZOHO ES IDENTITY*/ ,$purchase_order->getVendorId(),$purchase_order->getDate()  ,$JsonPurchaseorder);
     
     
             Flight::json(['status' => 'success']);
@@ -149,8 +145,8 @@
     }
     
 
-    function insertOrdenDeCompra ($order_id ,$vendor_id, $fecha, $json_po){
-        $statement = Flight::db()->prepare('INSERT INTO Ordenes_compra (id_orden ,id_usuario, fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
+    function insertOrdenDeCompra ($order_id ,$vendor_id, $fecha, $json_po){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS........ NO PASAR ID_ORDEN PQ ES IDENDITY
+        $statement = Flight::db()->prepare('INSERT INTO Ordenes_compra (id_orden ,id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
         $statement->bindParam(1, $order_id, PDO::PARAM_STR);
         $statement->bindParam(2, $vendor_id, PDO::PARAM_STR);
         $statement->bindParam(3, $fecha, PDO::PARAM_STR);
@@ -193,20 +189,32 @@
         }
     }
 
+    function insertOrdenDeVenta ($customer_id, $fecha, $json_so){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS
+        $statement = Flight::db()->prepare('INSERT INTO Ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? ,? , ? ,?)');
+        $statement->bindParam(2, $customer_id, PDO::PARAM_STR);
+        $statement->bindParam(3, $fecha, PDO::PARAM_STR);
+        $statement->bindParam(4, $json_so, PDO::PARAM_STR);
+        $statement->execute();
+    }
+
 
     Flight::route('POST /so', function(){
         $body_sale_order = Flight::request(); //validar atributos del body
         $sale_order_data = json_decode($$body_sale_order->getBody(), true);
 
         if (!isset($sale_order_data['line_items'])) {
-            echo json_encode(['error' => 'No se encontraron items en la Factura']);
+            Flight::halt(403, json_encode(['error' => 'No se encontraron items en la Factura']));
             return;
         }
 
-        $sale_order = new SoBuilder();
-        $sale_order->set('customer_id', $sale_order_data['customer_id']);
-        $sale_order->set('date', $sale_order_data['date']);
-        $sale_order->set('line_items', $sale_order_data['line_items']);
+        $lineItemsSO = array();
+
+        $sale_order = new SalesOrder();
+        //seteamos los atributos que no vienen default en el ctor
+        $sale_order->setCustomerId($sale_order_data['customer_id']);
+        $sale_order->setContactPersons($sale_order_data['contact_persons']);
+        $sale_order->setReferenceNumber($sale_order_data['nro_factura']);
+
 
         foreach ($sale_order_data['line_items'] as $item_data) {
             
@@ -215,26 +223,28 @@
 
             if(!$existing_item) {
                 //primero deberia evaluar la posibilidad de que este cargado en el zoho y no en la db
-                error_log('El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra');
+                 Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra']));
             }
             else{
 
-                //BUILDEAR ITEM
-                $item_builder = new ItemBuilder();
-                $item_builder->set('name', $existing_item['name']);
-                $item_builder->set('sku', $existing_item['sku']);
-                $item_builder->set('description', $existing_item['description']);
-                $item_builder->set('unit', $existing_item['unit']);
-                $item_builder->set('quantity', $sale_order_data['quantity']);
-                $item_builder->set('item_id_zoho', $existing_item['item_id_zoho']);
+                //Instanciar Item
+                $itemSaleOrder = new Item($existing_item['nombre']);
+                $itemSaleOrder->setIdItemZoho($existing_item['item_id_zoho']);
+                $itemSaleOrder->setDescription($existing_item['descripcion']);
+                $itemSaleOrder->setUnit($existing_item['unidad']);
+                $itemSaleOrder->setQuantity($item_data['quantity']);
 
-
-
-                $sale_order->addItem($item_builder->buildItem());
+                $lineItemsSO[] = $itemSaleOrder;
             }
             
         }
+        $sale_order->setLineItems($lineItemsSO);
+        $sale_order_json = $sale_order->toJson();
 
+        insertOrdenDeVenta($sale_order_data['customer_id'], $sale_order_data['date'], $sale_order_json);
+
+
+        Flight::start();
     });
 
     //ADAPTAR METODO A DB

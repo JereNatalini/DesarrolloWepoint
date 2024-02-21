@@ -126,5 +126,5 @@ private function generateLineItemsJson() {
             return json_encode($jsonArray);
         }
         
-    }
+}
 ?>
