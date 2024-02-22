@@ -5,6 +5,7 @@
     require 'PurchaseOrder/po_builder.php';
     require 'Zoho/zoho_api.php';
     require 'TokenTest/testToken.php';
+    require 'SaleOrder/sale_order.php';
     require 'funciones.php';
 
     global $token;
@@ -21,7 +22,12 @@
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
 
-        $tokenCliente = $po_data['token'];
+        
+        try {
+            $tokenCliente = $po_data['token'];
+        } catch (Exception $e) {
+            Flight::halt(403, 'No se recibio ningun Token');
+        }
 
         if (verificarToken($tokenCliente)){
 
@@ -190,61 +196,76 @@
     }
 
     function insertOrdenDeVenta ($customer_id, $fecha, $json_so){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS
-        $statement = Flight::db()->prepare('INSERT INTO Ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? ,? , ? ,?)');
-        $statement->bindParam(2, $customer_id, PDO::PARAM_STR);
-        $statement->bindParam(3, $fecha, PDO::PARAM_STR);
-        $statement->bindParam(4, $json_so, PDO::PARAM_STR);
+        $statement = Flight::db()->prepare('INSERT INTO Ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? , ? ,?)');
+        $statement->bindParam(1, $customer_id, PDO::PARAM_STR);
+        $statement->bindParam(2, $fecha, PDO::PARAM_STR);
+        $statement->bindParam(3, $json_so, PDO::PARAM_STR);
         $statement->execute();
     }
 
 
     Flight::route('POST /so', function(){
         $body_sale_order = Flight::request(); //validar atributos del body
-        $sale_order_data = json_decode($$body_sale_order->getBody(), true);
+        $sale_order_data = json_decode($body_sale_order->getBody(), true);
 
-        if (!isset($sale_order_data['line_items'])) {
-            Flight::halt(403, json_encode(['error' => 'No se encontraron items en la Factura']));
-            return;
+        try {
+            $tokenCliente = $po_data['token'];
+        } catch (Exception $e) {
+            Flight::halt(403, 'No se recibio ningun Token');
         }
 
-        $lineItemsSO = array();
-
-        $sale_order = new SalesOrder();
-        //seteamos los atributos que no vienen default en el ctor
-        $sale_order->setCustomerId($sale_order_data['customer_id']);
-        $sale_order->setContactPersons($sale_order_data['contact_persons']);
-        $sale_order->setReferenceNumber($sale_order_data['nro_factura']);
-
-
-        foreach ($sale_order_data['line_items'] as $item_data) {
-            
-            //Verificar si el item existe en la base de datos
-            $existing_item = getItem($item_data['sku']);
-
-            if(!$existing_item) {
-                //primero deberia evaluar la posibilidad de que este cargado en el zoho y no en la db
-                 Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra']));
+        if (verificarToken($tokenCliente)){
+            if (!isset($sale_order_data['line_items'])) {
+                Flight::halt(403, json_encode(['error' => 'No se encontraron items en la Factura']));
+                return;
             }
-            else{
-
-                //Instanciar Item
-                $itemSaleOrder = new Item($existing_item['nombre']);
-                $itemSaleOrder->setIdItemZoho($existing_item['item_id_zoho']);
-                $itemSaleOrder->setDescription($existing_item['descripcion']);
-                $itemSaleOrder->setUnit($existing_item['unidad']);
-                $itemSaleOrder->setQuantity($item_data['quantity']);
-
-                $lineItemsSO[] = $itemSaleOrder;
+    
+            $lineItemsSO = array();
+    
+            $sale_order = new SalesOrder();
+            //seteamos los atributos que no vienen default en el ctor
+            $sale_order->setCustomerId($sale_order_data['customer_id']);
+            $sale_order->setContactPersons($sale_order_data['contact_persons']);
+            $sale_order->setReferenceNumber($sale_order_data['nro_factura']);
+    
+    
+            foreach ($sale_order_data['line_items'] as $item_data) {
+                
+                //Verificar si el item existe en la base de datos
+                $existing_item = getItem($item_data['sku']);
+    
+                if(!$existing_item) {
+                    //primero deberia evaluar la posibilidad de que este cargado en el zoho y no en la db
+                     Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra']));
+                }
+                else{
+    
+                    //Instanciar Item
+                    $itemSaleOrder = new Item($existing_item['nombre']);
+                    $itemSaleOrder->setIdItemZoho($existing_item['item_id_zoho']);
+                    $itemSaleOrder->setDescription($existing_item['descripcion']);
+                    $itemSaleOrder->setUnit($existing_item['unidad']);
+                    $itemSaleOrder->setQuantity($item_data['quantity']);
+    
+                    $lineItemsSO[] = $itemSaleOrder;
+                }
+                
             }
-            
+            $sale_order->setLineItems($lineItemsSO);
+            $sale_order_json = $sale_order->toJson();
+    
+            insertOrdenDeVenta($sale_order_data['customer_id'], $sale_order_data['date'], $sale_order_json);
+
+        }else{
+
+            Flight::halt(403, 'No tienes autorizacion o el usuario no existe, verificar los datos');
+
         }
-        $sale_order->setLineItems($lineItemsSO);
-        $sale_order_json = $sale_order->toJson();
-
-        insertOrdenDeVenta($sale_order_data['customer_id'], $sale_order_data['date'], $sale_order_json);
 
 
-        Flight::start();
+
+
+       
     });
 
     //ADAPTAR METODO A DB
@@ -272,30 +293,71 @@
 
     Flight::route('GET /datosPo', function() {
         $db = Flight::db();
+        $request = Flight::request();
+        $headers = getallheaders();
 
-        //Ejecutar una consula SQL
-        $statement = $db->query('SELECT * FROM Ordenes_compra');
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode(array("mensaje" => "Token no proporcionado"));
+            exit;
+        }
 
-        //Obtener los resultados de la tabla
-        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $authorizationHeader = $headers['Authorization'];
+        $token = str_replace("Bearer ", "", $authorizationHeader);
 
-        //devolver los resultados como Json
-        Flight::json($result);
+        if (verificarToken($token)){
+            //Ejecutar una consula SQL
+            $statement = $db->query('SELECT * FROM Ordenes_compra');
+
+            //Obtener los resultados de la tabla
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+            //devolver los resultados como Json
+            Flight::json($result);
+
+        }else{
+
+            Flight::halt(403, 'No tienes autorizacion o el usuario no existe, verificar los datos');
+
+        }
+
+        // El formato para pasarle el token es 'Brearer 'Token''
 
     });
 
     
     Flight::route('GET /datosSo', function() {
         $db = Flight::db();
+        $request = Flight::request();
+        $headers = getallheaders();
 
-        //Ejecutar una consula SQL
-        $statement = $db->query('SELECT * FROM Ordenes_venta');
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode(array("mensaje" => "Token no proporcionado"));
+            exit;
+        }
 
-        //Obtener los resultados de la tabla
-        $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+        $authorizationHeader = $headers['Authorization'];
+        $token = str_replace("Bearer ", "", $authorizationHeader);
 
-        //devolver los resultados como Json
-        Flight::json($result);
+        if (verificarToken($token)){
+
+            //Ejecutar una consula SQL
+            $statement = $db->query('SELECT * FROM Ordenes_venta');
+
+            //Obtener los resultados de la tabla
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+            //devolver los resultados como Json
+            Flight::json($result);
+
+        }else{
+
+            Flight::halt(403, 'No tienes autorizacion o el usuario no existe, verificar los datos');
+
+        }
+
+
 
     });
 
