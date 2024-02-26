@@ -7,14 +7,14 @@ use Firebase\JWT\Key;
 Test para generar el token de autenticación 
 */
 
-function generarTokenCliente($id, $email){
+function generarTokenCliente($email, $password){
     $time = time();
     $token = array(
         "iat" => $time, // Tiempo en que inicia el token
         "exp" => $time + (60*60*6),  // Tiempo en que expirará el token (1 día)
         "data" => [
-            "id" => $id,
-            "email" => $email 
+            "email" => $email,
+            "password" => $password 
         ]
     );
     // La clave secreta es dfhsdfg34dfchs4xgsrsdry46

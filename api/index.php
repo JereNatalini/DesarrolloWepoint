@@ -21,7 +21,6 @@
     Flight::route('POST /po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
-
         
         try {
             $tokenCliente = $po_data['token'];
@@ -29,19 +28,23 @@
             Flight::halt(403, 'No se recibio ningun Token');
         }
 
-        if (verificarToken($tokenCliente)){
+        $datosCliente = verificarToken($tokenCliente);
+
+        if ($datosCliente){
 
             if (!isset($po_data['line_items'])) {
                 echo json_encode(['error' => 'No se encontraron items en el pedido']);
                 return;
             }
+
+            $vendor_id = $datosCliente['vendor_id_zoho'];
             
             $purchase_order_builder = new PoBuilder();
-        
+            
             // Agregar campos al PurchaseOrderBuilder
             $purchase_order_builder->set('purchaseorder_number', $po_data['purchaseorder_number']);
             $purchase_order_builder->set('date', $po_data['date']);
-            $purchase_order_builder->set('vendor_id', $po_data['vendor_id']);
+            $purchase_order_builder->set('vendor_id', $vendor_id);
             $purchase_order_builder->set('is_drop_shipment', $po_data['is_drop_shipment']);
             $purchase_order_builder->set('contact_persons', $po_data['contact_persons']);
             $purchase_order_builder->set('notes', $po_data['notes']);
@@ -136,18 +139,11 @@
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
     
-    Function getPurchaseOrder($Client_id) {
-        //Verificar que sea de la misma empresa
-        $statement = Flight::db()->prepare('SELECT * FROM Ordenes_compra WHERE client_id = ?');
-        $statement->bindParam(1, $Client_id, PDO::PARAM_STR);
-        $statement->execute();
-        return $statement->fetch(PDO::FETCH_ASSOC);
-    }
 
     // Función para insertar un nuevo producto en la base de datos
-    function insertItem($item_builder) {
+    function insertItem($item) {
         $statement = Flight::db()->prepare('INSERT INTO Productos (sku, nombre, descripcion, unidad, item_id_zoho) VALUES (?, ?, ?, ?, ?)');
-        $statement->execute([$item_builder->getSku(), $item_builder->getName(), $item_builder->getDescription(), $item_builder->getUnit(), $item_builder->getIdItemZoho()]);
+        $statement->execute([$item->getSku(), $item->getName(), $item->getDescription(), $item->getUnit(), $item->getIdItemZoho()]);
     }
     
 
@@ -160,13 +156,13 @@
         $statement->execute();
     }
 
-    function clienExists($id_cliente, $email){
-        $statement = Flight::db()->prepare('SELECT * FROM Usuarios WHERE id_usuario = ? AND email = ?');
-        $statement->bindParam(1, $id_cliente, PDO::PARAM_STR);
-        $statement->bindParam(2, $email, PDO::PARAM_STR);
+    function clientExists($email, $password){
+        //Macthear por email y password. Ver metodo de Pato para encriptar
+        $statement = Flight::db()->prepare('SELECT U.empresa , U.vendor_id_zoho , U.customer_id_zoho, U.email , U.id_usuario FROM Usuarios U WHERE email = ? AND password = ?');
+        $statement->bindParam(1, $email, PDO::PARAM_STR);
+        $statement->bindParam(2, $password, PDO::PARAM_STR);
         $statement->execute();
-        $rows = $statement->fetchColumn();
-        return $rows;
+        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
     function verificarToken($token){
@@ -180,11 +176,14 @@
             $data = json_encode($datosTokenDecodificado, true);
             $data = json_decode($data, true);
             // Obtener el ID y el correo electrónico directamente desde el objeto
-            $id = $data['data']['id'];
             $email = $data['data']['email'];
+            $password = $data['data']['password'];
             
-             if (clienExists($id, $email)){
-                return true;
+            
+            $cliente = clientExists($email, $password);
+
+             if ($cliente){
+                return $cliente;
              }else{
                 return false;
              }
@@ -195,9 +194,9 @@
         }
     }
 
-    function insertOrdenDeVenta ($customer_id, $fecha, $json_so){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS
+    function insertOrdenDeVenta ($id_usuario, $fecha, $json_so){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS
         $statement = Flight::db()->prepare('INSERT INTO Ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? , ? ,?)');
-        $statement->bindParam(1, $customer_id, PDO::PARAM_STR);
+        $statement->bindParam(1, $id_usuario, PDO::PARAM_STR);
         $statement->bindParam(2, $fecha, PDO::PARAM_STR);
         $statement->bindParam(3, $json_so, PDO::PARAM_STR);
         $statement->execute();
@@ -209,24 +208,29 @@
         $sale_order_data = json_decode($body_sale_order->getBody(), true);
 
         try {
-            $tokenCliente = $po_data['token'];
+            $tokenCliente = $sale_order_data['token'];
         } catch (Exception $e) {
             Flight::halt(403, 'No se recibio ningun Token');
         }
 
-        if (verificarToken($tokenCliente)){
+        $datosCliente = verificarToken($tokenCliente);
+
+        if ($datosCliente){
             if (!isset($sale_order_data['line_items'])) {
                 Flight::halt(403, json_encode(['error' => 'No se encontraron items en la Factura']));
                 return;
             }
     
             $lineItemsSO = array();
-    
+            $customer_id = $datosCliente['customer_id_zoho'];
+            $id_usuario = $datosCliente['id_usuario'];
+
             $sale_order = new SalesOrder();
             //seteamos los atributos que no vienen default en el ctor
-            $sale_order->setCustomerId($sale_order_data['customer_id']);
+            $sale_order->setCustomerId($customer_id);
             $sale_order->setContactPersons($sale_order_data['contact_persons']);
-            $sale_order->setReferenceNumber($sale_order_data['nro_factura']);
+            $sale_order->setReferenceNumber($sale_order_data['nro_orden_venta']); 
+            //El reference number va ser el numero de factura del cliente
     
     
             foreach ($sale_order_data['line_items'] as $item_data) {
@@ -254,7 +258,9 @@
             $sale_order->setLineItems($lineItemsSO);
             $sale_order_json = $sale_order->toJson();
     
-            insertOrdenDeVenta($sale_order_data['customer_id'], $sale_order_data['date'], $sale_order_json);
+            insertOrdenDeVenta($id_usuario, $sale_order_data['date'], $sale_order_json);
+
+            Flight::json(['status' => 'success']);
 
         }else{
 
@@ -280,14 +286,21 @@
     }
     */
 
-    Flight::route('POST /token', function() {
+    Flight::route('POST /OAuth', function() {
         $request = Flight::request();
         $post_data = $request->data;
-        $id = $post_data['id'];
+        
         $email = $post_data['email'];
-        $token = generarTokenCliente($id, $email);
-        $tokenDecode = decodificarToken($token);
-        Flight::json(['status' => 'success','token' => $token ,'token_Email' => $tokenDecode ]);
+        $password = $post_data['password'];
+
+        $cliente = clientExists($email , $password);
+        
+        If ($cliente){
+            $token = generarTokenCliente($email , $password);
+         }else{
+            Flight::halt(403, 'El usuario no existe');
+         }
+        Flight::json(['status' => 'success','token' => $token]);
     });
 
 
@@ -307,7 +320,8 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT * FROM Ordenes_compra');
+            $statement = $db->query('SELECT OC.idOrden, OC.idUsuario, OC.fechaOrden, OC.jsonPurchaseOrder, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.idUsuario = U.idUsuario');
+            //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -321,7 +335,7 @@
 
         }
 
-        // El formato para pasarle el token es 'Brearer 'Token''
+        // El formato para pasarle el token es 'Bearer 'Token''
 
     });
 
@@ -330,6 +344,8 @@
         $db = Flight::db();
         $request = Flight::request();
         $headers = getallheaders();
+
+
 
         if (!isset($headers['Authorization'])) {
             http_response_code(401);
@@ -343,7 +359,7 @@
         if (verificarToken($token)){
 
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT * FROM Ordenes_venta');
+            $statement = $db->query('SELECT OV.idOrden, OV.idUsuario, OV.fechaOrden, OV.jsonSalesOrder, U.nombre , U.email FROM ordenes_venta OV JOIN Usuarios U ON OV.idUsuario = U.idUsuario');
 
             //Obtener los resultados de la tabla
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);

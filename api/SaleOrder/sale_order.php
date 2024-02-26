@@ -247,6 +247,7 @@ class SalesOrder {
 
     public function toJson() {
         $jsonArray = [
+            "customer_id" => $this->customer_id,
             "reference_number" => $this->reference_number,
             "date" => $this->date,
             "shipment_date" => $this->shipment_date,
@@ -258,7 +259,6 @@ class SalesOrder {
             "payment_terms" => $this->payment_terms,
             "payment_terms_label" => $this->payment_terms_label,
             "is_adv_tracking_in_package" => $this->is_adv_tracking_in_package,
-            "customer_id" => $this->customer_id,
             "contact_persons" => $this->contact_persons,
             "line_items" => $this->generateLineItemsJson(),
         ];
