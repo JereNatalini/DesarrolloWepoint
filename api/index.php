@@ -50,8 +50,30 @@
             $purchase_order_builder->set('notes', $po_data['notes']);
             $purchase_order_builder->set('reference_number', $po_data['reference_number']);
             
-            foreach ($po_data['line_items'] as $item_data) {
-                
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+            //No lo pude testear al emtodo de verificacion Agus 27/2
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            $processedSkus = [];
+
+            foreach ($sale_order_data['line_items'] as $item_data) {
+                $sku = $item_data['sku'];
+
+                // Chequea si el SKU ya fue leido 
+                if (isset($processedSkus[$sku])) {
+                    
+                    Flight::halt(403, json_encode(['error' => 'Se cargo el mismo Producto mas de 1 vez' . $sku]));
+                }
+
+                // Mark SKU as processed
+                $processedSkus[$sku] = true;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------              
                 //Verificar si el item existe en la base de datos
                 $existing_item_data = getItem($item_data['sku']);
     
@@ -232,12 +254,30 @@
             $sale_order->setReferenceNumber($sale_order_data['nro_orden_venta']); 
             //El reference number va ser el numero de factura del cliente
     
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+            //No lo pude testear al metodo de verificacion Agus 27/2
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+            $processedSkus = [];
+
+                foreach ($sale_order_data['line_items'] as $item_data) {
+                    $sku = $item_data['sku'];
+
+                    // Check if SKU has already been processed
+                    if (isset($processedSkus[$sku])) {
+                        // Handle duplicate SKU, e.g., by halting with an error
+                        Flight::halt(403, json_encode(['error' => 'Se cargo el mismo Producto mas de 1 vez' . $sku]));
+                    }
+
+                    // Mark SKU as processed
+                    $processedSkus[$sku] = true;
     
-            foreach ($sale_order_data['line_items'] as $item_data) {
-                
-                //Verificar si el item existe en la base de datos
-                $existing_item = getItem($item_data['sku']);
-    
+                    $existing_item = getItem($item_data['sku']);
+
                 if(!$existing_item) {
                     //primero deberia evaluar la posibilidad de que este cargado en el zoho y no en la db
                      Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra']));
