@@ -72,6 +72,7 @@
                 {
                     $name = $item_data['name'];
                     $sku = $item_data['sku'];
+
                     //Si no existe crear el item para insertarlo a zoho
                     $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
 
