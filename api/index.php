@@ -321,7 +321,7 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OC.idOrden, OC.idUsuario, OC.fechaOrden, OC.jsonPurchaseOrder, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.idUsuario = U.idUsuario');
+            $statement = $db->query('SELECT OC.id_Orden, OC.id_Usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.id_Usuario = U.id_Usuario');
             //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
