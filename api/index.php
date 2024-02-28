@@ -65,6 +65,7 @@
                         ->setUnit($existing_item_data['unidad'])
                         ->setIdItemZoho($existing_item_data['item_id_zoho'])
                         ->setQuantity($item_data['quantity']);
+                        
                     
                     // Agregarlo al PurchaseOrderBuilder
                     $purchase_order_builder->addItem($existing_item);
@@ -322,7 +323,7 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OC.idOrden, OC.idUsuario, OC.fechaOrden, OC.jsonPurchaseOrder, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.idUsuario = U.idUsuario');
+            $statement = $db->query('SELECT OC.id_orden, OC.id_usuario, OC.fecha_orden, OC.json_purchase_order, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.id_suario = U.id_usuario');
             //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
@@ -361,7 +362,7 @@
         if (verificarToken($token)){
 
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OV.idOrden, OV.idUsuario, OV.fechaOrden, OV.jsonSalesOrder, U.nombre , U.email FROM ordenes_venta OV JOIN Usuarios U ON OV.idUsuario = U.idUsuario');
+            $statement = $db->query('SELECT OV.id_orden, OV.id_usuario, OV.fecha_orden, OV.json_sales_order, U.nombre , U.email FROM ordenes_venta OV JOIN Usuarios U ON OV.id_usuario = U.id_usuario');
 
             //Obtener los resultados de la tabla
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);

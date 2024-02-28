@@ -6,9 +6,20 @@ class Item {
     private $unit;
     private $id_item_zoho;
     private $quantity;
+    private $item_type;
+
 
     public function __construct($name) {
         $this->name = $name;
+        $this->item_type = "Inventory";
+    }
+
+    public function getType(){
+        return $this->item_type;
+    }
+
+    public function setType(){
+        $this->item_type = $item_type;
     }
 
     public function getName() {
