@@ -4,7 +4,7 @@
     require 'PurchaseOrder/purchase_order.php';
     require 'PurchaseOrder/po_builder.php';
     require 'Zoho/zoho_api.php';
-    require 'TokenTest/testToken.php';
+    require 'Token/Token.php';
     require 'SaleOrder/sale_order.php';
     require 'funciones.php';
 
@@ -30,13 +30,14 @@
 
         $datosCliente = verificarToken($tokenCliente);
 
+
         if ($datosCliente){
 
             if (!isset($po_data['line_items'])) {
                 echo json_encode(['error' => 'No se encontraron items en el pedido']);
                 return;
             }
-
+            $id_usuario = $datosCliente['id_usuario'];
             $vendor_id = $datosCliente['vendor_id_zoho'];
             
             $purchase_order_builder = new PoBuilder();
@@ -116,7 +117,7 @@
             $purchase_order = $purchase_order_builder->buildPO();
             $JsonPurchaseorder = $purchase_order->toJson();
     
-            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber()/*NO HACE FALTA PASAR ESTE VALOR PORQ EN EL ZOHO ES IDENTITY*/ ,$purchase_order->getVendorId(),$purchase_order->getDate()  ,$JsonPurchaseorder);
+            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber()/*NO HACE FALTA PASAR ESTE VALOR PORQ EN EL ZOHO ES IDENTITY*/ ,$id_usuario,$purchase_order->getDate()  ,$JsonPurchaseorder);
     
     
             Flight::json(['status' => 'success']);
@@ -148,10 +149,10 @@
     }
     
 
-    function insertOrdenDeCompra ($order_id ,$vendor_id, $fecha, $json_po){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS........ NO PASAR ID_ORDEN PQ ES IDENDITY
+    function insertOrdenDeCompra ($order_id ,$id_usuario, $fecha, $json_po){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS........ NO PASAR ID_ORDEN PQ ES IDENDITY
         $statement = Flight::db()->prepare('INSERT INTO Ordenes_compra (id_orden ,id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
         $statement->bindParam(1, $order_id, PDO::PARAM_STR);
-        $statement->bindParam(2, $vendor_id, PDO::PARAM_STR);
+        $statement->bindParam(2, $id_usuario, PDO::PARAM_STR);
         $statement->bindParam(3, $fecha, PDO::PARAM_STR);
         $statement->bindParam(4, $json_po, PDO::PARAM_STR);
         $statement->execute();
@@ -241,7 +242,7 @@
     
                 if(!$existing_item) {
                     //primero deberia evaluar la posibilidad de que este cargado en el zoho y no en la db
-                     Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . 'nunca se recibio en una Orden de Compra']));
+                     Flight::halt(403, json_encode(['error' => 'El producto ' . $item_data['name'] . ' nunca se recibio en una Orden de Compra']));
                 }
                 else{
     
