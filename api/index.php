@@ -22,11 +22,17 @@
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
         
-        try {
-            $tokenCliente = $po_data['token'];
-        } catch (Exception $e) {
-            Flight::halt(403, 'No se recibio ningun Token');
+        $headers = getallheaders();
+
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode(array("mensaje" => "Token no proporcionado"));
+            exit;
         }
+
+        $authorizationHeader = $headers['Authorization'];
+        $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
+        
 
         $datosCliente = verificarToken($tokenCliente);
 
@@ -208,11 +214,18 @@
         $body_sale_order = Flight::request(); //validar atributos del body
         $sale_order_data = json_decode($body_sale_order->getBody(), true);
 
-        try {
-            $tokenCliente = $sale_order_data['token'];
-        } catch (Exception $e) {
-            Flight::halt(403, 'No se recibio ningun Token');
+        $headers = getallheaders();
+
+        if (!isset($headers['Authorization'])) {
+            http_response_code(401);
+            echo json_encode(array("mensaje" => "Token no proporcionado"));
+            exit;
         }
+
+        $authorizationHeader = $headers['Authorization'];
+        $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
+        
+
 
         $datosCliente = verificarToken($tokenCliente);
 
