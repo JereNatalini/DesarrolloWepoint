@@ -271,7 +271,7 @@
                 // Chequea si el SKU ya fue leido 
                 if (isset($processedSkus[$sku])) {
                     
-                    Flight::halt(403, json_encode(['error' => 'Se cargo el mismo Producto mas de 1 vez' . $sku]));
+                    Flight::halt(403, json_encode([' ERROR ' => ' Se cargo el mismo Producto mas de 1 vez = ' . $sku]));
                 }
 
                 // Mark SKU as processed
