@@ -84,6 +84,7 @@
                         ->setUnit($existing_item_data['unidad'])
                         ->setIdItemZoho($existing_item_data['item_id_zoho'])
                         ->setQuantity($item_data['quantity']);
+                        
                     
                     // Agregarlo al PurchaseOrderBuilder
                     $purchase_order_builder->addItem($existing_item);
@@ -92,6 +93,7 @@
                 {
                     $name = $item_data['name'];
                     $sku = $item_data['sku'];
+
                     //Si no existe crear el item para insertarlo a zoho
                     $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
 
