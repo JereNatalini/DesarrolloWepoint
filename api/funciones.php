@@ -4,7 +4,8 @@
 function createProductArray($name, $sku) {
     return [
         "name" => $name,
-        "sku" => $sku
+        "sku" => $sku,
+        "item_type" => "inventory"
     ];
 }
 

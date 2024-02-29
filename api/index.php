@@ -277,18 +277,6 @@
        
     });
 
-    //ADAPTAR METODO A DB
-    /*
-    function insertSaleOrder($saleOrder){
-        $statement = Flight::db()->prepare('INSERT INTO Items (sku, item_name, item_desc, unit) VALUES (?, ?, ?, ?)');
-        $statement->bindParam(1, $item_data['sku'], PDO::PARAM_STR);
-        $statement->bindParam(2, $item_data['name'], PDO::PARAM_STR);
-        $statement->bindParam(3, $item_data['description'], PDO::PARAM_STR);
-        $statement->bindParam(4, $item_data['unit'], PDO::PARAM_STR);
-        $statement->execute();
-    }
-    */
-
     Flight::route('POST /OAuth', function() {
         $request = Flight::request();
         $post_data = $request->data;
@@ -323,7 +311,7 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OC.id_orden, OC.id_usuario, OC.fecha_orden, OC.json_purchase_order, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.id_suario = U.id_usuario');
+            $statement = $db->query('SELECT OC.id_Orden, OC.id_Usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.id_Usuario = U.id_Usuario');
             //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
@@ -362,7 +350,7 @@
         if (verificarToken($token)){
 
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OV.id_orden, OV.id_usuario, OV.fecha_orden, OV.json_sales_order, U.nombre , U.email FROM ordenes_venta OV JOIN Usuarios U ON OV.id_usuario = U.id_usuario');
+            $statement = $db->query('SELECT OV.id_orden, OV.id_usuario, OV.fecha_orden, OV.json_sales_order, U.empresa , U.email FROM ordenes_venta OV JOIN usuarios U ON OV.id_usuario = U.id_usuario');
 
             //Obtener los resultados de la tabla
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);
