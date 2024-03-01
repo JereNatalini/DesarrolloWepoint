@@ -1,0 +1,13 @@
+
+    {
+        "name": "localhost",
+        "host": "173.247.244.144",
+        "port": 21,
+        "type": "ftp",
+        "username": "n455735",
+        "password": "CdhGmhGnSMq7",
+        "path": "/wepoint.ar/",
+        "autosave": true,
+        "confirm": false
+    }
+  
