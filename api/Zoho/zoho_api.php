@@ -36,7 +36,37 @@
             return $response;
         }
         
-        
+        function updateItemZoho($itemId, $jsonData) {
+            $url = "https://www.zohoapis.com/inventory/v1/items/{$itemId}?organization_id=753793595";
 
+            $token = 'Zoho-oauthtoken 1000.d0cfd5c1bbe448e4960de2a67da61ee5.73c3300efd0c3282e4e4a07d49cc9006';
+        
+            $headers = [
+                'Authorization: ' . $token,
+                'Content-Type:application/json',
+            ];
+        
+            $ch = curl_init($url);
+            
+            // Configurar opciones de cURL
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        
+            // Ejecutar la solicitud cURL
+            $response = curl_exec($ch);
+        
+            // Manejar errores si es necesario
+            if (curl_errno($ch)) {
+                echo 'Error en la solicitud cURL: ' . curl_error($ch);
+            }
+        
+            // Cerrar la sesión cURL
+            curl_close($ch);
+        
+            // Imprimir la respuesta
+            return $response;
+        }
 
 ?>

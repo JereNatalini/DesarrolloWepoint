@@ -1,11 +1,12 @@
 <?php
 
 
-function createProductArray($name, $sku) {
+function createProductArray($name, $sku, $purchase_rate) {
     return [
         "name" => $name,
         "sku" => $sku,
-        "item_type" => "inventory"
+        "item_type" => "inventory",
+        "purchase_rate" => $purchase_rate
     ];
 }
 

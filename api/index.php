@@ -66,7 +66,7 @@
                 // Chequea si el SKU ya fue leido 
                 if (isset($processedSkus[$sku])) {
                     
-                    Flight::halt(403, json_encode(['error' => 'Se cargo el mismo Producto mas de 1 vez' . $sku]));
+                    Flight::halt(403, json_encode(['ERROR' => 'Se cargo el mismo Producto mas de 1 vez ' . $sku]));
                 }
 
                 // Mark SKU as processed
@@ -83,8 +83,26 @@
                         ->setDescription($existing_item_data['descripcion'])
                         ->setUnit($existing_item_data['unidad'])
                         ->setIdItemZoho($existing_item_data['item_id_zoho'])
-                        ->setQuantity($item_data['quantity']);
+                        ->setQuantity($item_data['quantity'])
+                        ->setPurchaseRate($item_data['purchase_rate']);
                         
+                    //Comparar el precio que entra con el que esta en la DB y actualizarlo si es distinto
+                    //Aca trae el item y accede a la columna purchase_rate... 
+                    if ($existing_item_data['purchase_rate'] !== $item_data['purchase_rate'] || $existing_item_data['name'] !== $item_data['name']) {
+                        
+
+                        $name = $item_data['name'];
+                        $sku = $item_data['sku'];
+                        $purchase_rate = $item_data['purchase_rate'];
+
+                        updateItemDB($name, $purchase_rate, $sku);
+                        $jsonItem = createProductArray($name, $sku, $purchase_rate);
+                        $response = updateItemZoho($existing_item_data['item_id_zoho'], json_encode($jsonItem));
+                        
+                    }
+                    
+
+
                     
                     // Agregarlo al PurchaseOrderBuilder
                     $purchase_order_builder->addItem($existing_item);
@@ -93,18 +111,17 @@
                 {
                     $name = $item_data['name'];
                     $sku = $item_data['sku'];
+                    $purchase_rate = $item_data['purchase_rate'];
 
                     //Si no existe crear el item para insertarlo a zoho
-                    $array_post_item_zoho = CreateProductArray($item_data['name'], $item_data['sku']);
+                    $array_post_item_zoho = CreateProductArray($name, $sku, $purchase_rate);
 
-    
-                    $array_post_item_zoho = CreateProductArray($name, $sku);
                     //Post al zoho con los parametros de arriba
                     //Response del zoho, de ahi sacamos el item id
                     $response = postZohoProductos(json_encode($array_post_item_zoho));
                     $item_id_zoho = json_decode($response, true);
                    
-                   
+                
                     if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
                         // Acceder al atributo 'item_id'
                         $itemId = $item_id_zoho['item']['item_id'];
@@ -122,7 +139,8 @@
                         ->setDescription($item_data['description'])
                         ->setUnit($item_data['unit'])
                         ->setIdItemZoho($itemId)
-                        ->setQuantity($item_data['quantity']);
+                        ->setQuantity($item_data['quantity'])
+                        ->setPurchaseRate($item_data['purchase_rate']);
                     
                     
                     // Construir el Item, guardarlo en la DB y agregarlo al PurchaseOrderBuilder
@@ -137,7 +155,7 @@
             $purchase_order = $purchase_order_builder->buildPO();
             $JsonPurchaseorder = $purchase_order->toJson();
     
-            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber()/*NO HACE FALTA PASAR ESTE VALOR PORQ EN EL ZOHO ES IDENTITY*/ ,$id_usuario,$purchase_order->getDate()  ,$JsonPurchaseorder);
+            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber(),$id_usuario,$purchase_order->getDate()  ,$JsonPurchaseorder);
     
     
             Flight::json(['status' => 'success']);
@@ -151,7 +169,14 @@
 
        
     });
-
+    
+    function updateItemDB($name,$purchase_rate,$sku){
+        $statement = Flight::db()->prepare('UPDATE Productos SET nombre = ?, purchase_rate = ? WHERE sku = ?');
+        $statement->bindParam(1, $name, PDO::PARAM_STR);
+        $statement->bindParam(2, $purchase_rate, PDO::PARAM_STR);
+        $statement->bindParam(3, $sku, PDO::PARAM_STR);
+        $statement->execute();
+    }
    
     function getItem($sku) {
         //Verificar que sea de la misma empresa
@@ -164,8 +189,8 @@
 
     // Función para insertar un nuevo producto en la base de datos
     function insertItem($item) {
-        $statement = Flight::db()->prepare('INSERT INTO Productos (sku, nombre, descripcion, unidad, item_id_zoho) VALUES (?, ?, ?, ?, ?)');
-        $statement->execute([$item->getSku(), $item->getName(), $item->getDescription(), $item->getUnit(), $item->getIdItemZoho()]);
+        $statement = Flight::db()->prepare('INSERT INTO Productos (sku, nombre, descripcion, unidad, item_id_zoho, purchase_rate) VALUES (?, ?, ?, ?, ?, ?)');
+        $statement->execute([$item->getSku(), $item->getName(), $item->getDescription(), $item->getUnit(), $item->getIdItemZoho(), $item->getPurchaseRate()]);
     }
     
 

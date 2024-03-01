@@ -7,11 +7,15 @@ class Item {
     private $id_item_zoho;
     private $quantity;
     private $item_type;
-
+    private $purchase_rate;
 
     public function __construct($name) {
         $this->name = $name;
         $this->item_type = "Inventory";
+    }
+
+    public function getPurchaseRate(){
+        return $this->purchase_rate;
     }
 
     public function getType(){
@@ -76,13 +80,9 @@ class Item {
         return $this;
     }
 
-        public function toJsonInsertItemZoho() {
-            $jsonArray = [
-                "name" => $this->name,
-                "sku" => $this->sku
-            ];
-        
-            return json_encode($jsonArray);
-        }
+    public function setPurchaseRate($purchase_rate){
+        $this->purchase_rate = $purchase_rate;
+    }
+    
     }
 ?>
