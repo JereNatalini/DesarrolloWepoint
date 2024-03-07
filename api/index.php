@@ -88,7 +88,7 @@
                         
                     //Comparar el precio que entra con el que esta en la DB y actualizarlo si es distinto
                     //Aca trae el item y accede a la columna purchase_rate... 
-                    if ($existing_item_data['purchase_rate'] !== $item_data['purchase_rate'] || $existing_item_data['name'] !== $item_data['name']) {
+                    if ($existing_item_data['purchase_rate'] !== $item_data['purchase_rate'] || $existing_item_data['nombre'] !== $item_data['name']) {
                         
 
                         $name = $item_data['name'];
@@ -120,7 +120,8 @@
                     //Response del zoho, de ahi sacamos el item id
                     $response = postZohoProductos(json_encode($array_post_item_zoho));
                     $item_id_zoho = json_decode($response, true);
-                   
+
+                    
                 
                     if ($item_id_zoho && isset($item_id_zoho['item']['item_id'])) {
                         // Acceder al atributo 'item_id'

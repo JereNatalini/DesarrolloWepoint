@@ -4,7 +4,7 @@
             $url = 'https://www.zohoapis.com/inventory/v1/items?organization_id=753793595';
         
             // Token de autorización
-            $token = 'Zoho-oauthtoken 1000.d0cfd5c1bbe448e4960de2a67da61ee5.73c3300efd0c3282e4e4a07d49cc9006';
+            $token = 'Zoho-oauthtoken 1000.3f1fb767edbdf8fbc405fc92e3a2b28c.b6f2bbc8f42a90b3a3155767221806be';
         
             // Cabeceras de la solicitud
             $headers = [
@@ -39,7 +39,7 @@
         function updateItemZoho($itemId, $jsonData) {
             $url = "https://www.zohoapis.com/inventory/v1/items/{$itemId}?organization_id=753793595";
 
-            $token = 'Zoho-oauthtoken 1000.d0cfd5c1bbe448e4960de2a67da61ee5.73c3300efd0c3282e4e4a07d49cc9006';
+            $token = 'Zoho-oauthtoken 1000.3f1fb767edbdf8fbc405fc92e3a2b28c.b6f2bbc8f42a90b3a3155767221806be';
         
             $headers = [
                 'Authorization: ' . $token,
