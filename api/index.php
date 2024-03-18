@@ -366,6 +366,7 @@
         $request = Flight::request();
         $headers = getallheaders();
 
+        Flight::halt(200, print_r($headers, true));
         Flight::halt(200, print_r($headers['Authorization'], true));
         
         if (!isset($headers['Authorization'])) {
