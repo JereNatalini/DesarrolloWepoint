@@ -17,7 +17,7 @@
         return $token;
     }
 
-    Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'root', ''));
+    Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'wepoint', 'W1DjSYZJ0BLP'));
     
     Flight::route('POST /po', function() {
         $request = Flight::request();
