@@ -366,8 +366,8 @@
         $request = Flight::request();
         $headers = getallheaders();
 
-        Flight::halt(200, print_r($headers, true));
-
+        Flight::halt(200, print_r($headers['Authorization'], true));
+        
         if (!isset($headers['Authorization'])) {
             http_response_code(401);
             echo json_encode(array("mensaje" => "Token no proporcionado"));
