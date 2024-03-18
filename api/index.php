@@ -207,7 +207,7 @@
 
     function clientExists($email, $password){
         //Macthear por email y password. Ver metodo de Pato para encriptar
-        $statement = Flight::db()->prepare('SELECT U.empresa , U.vendor_id_zoho , U.customer_id_zoho, U.email , U.id_usuario FROM Usuarios U WHERE email = ? AND password = ?');
+        $statement = Flight::db()->prepare('SELECT U.empresa , U.vendor_id_zoho , U.customer_id_zoho, U.email , U.id_usuario FROM usuarios U WHERE email = ? AND password = ?');
         $statement->bindParam(1, $email, PDO::PARAM_STR);
         $statement->bindParam(2, $password, PDO::PARAM_STR);
         $statement->execute();
@@ -377,7 +377,7 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OC.id_Orden, OC.id_Usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM Ordenes_compra OC JOIN Usuarios U ON OC.id_Usuario = U.id_Usuario');
+            $statement = $db->query('SELECT OC.id_Orden, OC.id_usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM Ordenes_compra OC JOIN usuarios U ON OC.id_usuario = U.id_usuario');
             //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
