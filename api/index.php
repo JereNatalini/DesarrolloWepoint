@@ -157,7 +157,7 @@
             $purchase_order = $purchase_order_builder->buildPO();
             $JsonPurchaseorder = $purchase_order->toJson();
     
-            insertOrdenDeCompra($purchase_order->getPurchaseorderNumber(),$id_usuario,$purchase_order->getDate()  ,$JsonPurchaseorder);
+            insertOrdenDeCompra($id_usuario,$purchase_order->getDate()  ,$JsonPurchaseorder);
     
     
             Flight::json(['status' => 'success']);
@@ -196,12 +196,11 @@
     }
     
 
-    function insertOrdenDeCompra ($order_id ,$id_usuario, $fecha, $json_po){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS........ NO PASAR ID_ORDEN PQ ES IDENDITY
-        $statement = Flight::db()->prepare('INSERT INTO ordenes_compra (id_orden ,id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
-        $statement->bindParam(1, $order_id, PDO::PARAM_STR);
-        $statement->bindParam(2, $id_usuario, PDO::PARAM_STR);
-        $statement->bindParam(3, $fecha, PDO::PARAM_STR);
-        $statement->bindParam(4, $json_po, PDO::PARAM_STR);
+    function insertOrdenDeCompra ($id_usuario, $fecha, $json_po){ 
+        $statement = Flight::db()->prepare('INSERT INTO ordenes_compra (id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? )');
+        $statement->bindParam(1, $id_usuario, PDO::PARAM_STR);
+        $statement->bindParam(2, $fecha, PDO::PARAM_STR);
+        $statement->bindParam(3, $json_po, PDO::PARAM_STR);
         $statement->execute();
     }
 
