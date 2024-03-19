@@ -26,16 +26,10 @@
         $headers = getallheaders();
 
         if (!isset($headers['Authorization'])) {
-            // Convertir los encabezados a un array asociativo simple
-            $formattedHeaders = [];
-            foreach ($headers as $key => $value) {
-                $formattedHeaders[$key] = $value;
-            }
-        
             http_response_code(401);
-            echo json_encode(array("mensaje" => "Token no proporcionado", "headers" => $formattedHeaders));
+            echo json_encode(array("mensaje" => "Token no proporcionado"));
             exit;
-        }                
+        }
 
         $authorizationHeader = $headers['Authorization'];
         $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
