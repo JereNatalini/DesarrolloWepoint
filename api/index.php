@@ -23,7 +23,7 @@
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
         
-        $headers = apache_request_headers();
+        $headers = getallheaders();
 
         if (!isset($headers['Authorization'])) {
             http_response_code(401);
