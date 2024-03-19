@@ -173,7 +173,7 @@
     });
     
     function updateItemDB($name,$purchase_rate,$sku){
-        $statement = Flight::db()->prepare('UPDATE Productos SET nombre = ?, purchase_rate = ? WHERE sku = ?');
+        $statement = Flight::db()->prepare('UPDATE productos SET nombre = ?, purchase_rate = ? WHERE sku = ?');
         $statement->bindParam(1, $name, PDO::PARAM_STR);
         $statement->bindParam(2, $purchase_rate, PDO::PARAM_STR);
         $statement->bindParam(3, $sku, PDO::PARAM_STR);
@@ -182,7 +182,7 @@
    
     function getItem($sku) {
         //Verificar que sea de la misma empresa
-        $statement = Flight::db()->prepare('SELECT * FROM Productos WHERE sku = ?');
+        $statement = Flight::db()->prepare('SELECT * FROM productos WHERE sku = ?');
         $statement->bindParam(1, $sku, PDO::PARAM_STR);
         $statement->execute();
         return $statement->fetch(PDO::FETCH_ASSOC);
@@ -191,13 +191,13 @@
 
     // Función para insertar un nuevo producto en la base de datos
     function insertItem($item) {
-        $statement = Flight::db()->prepare('INSERT INTO Productos (sku, nombre, descripcion, unidad, item_id_zoho, purchase_rate) VALUES (?, ?, ?, ?, ?, ?)');
+        $statement = Flight::db()->prepare('INSERT INTO productos (sku, nombre, descripcion, unidad, item_id_zoho, purchase_rate) VALUES (?, ?, ?, ?, ?, ?)');
         $statement->execute([$item->getSku(), $item->getName(), $item->getDescription(), $item->getUnit(), $item->getIdItemZoho(), $item->getPurchaseRate()]);
     }
     
 
     function insertOrdenDeCompra ($order_id ,$id_usuario, $fecha, $json_po){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS........ NO PASAR ID_ORDEN PQ ES IDENDITY
-        $statement = Flight::db()->prepare('INSERT INTO Ordenes_compra (id_orden ,id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
+        $statement = Flight::db()->prepare('INSERT INTO ordenes_compra (id_orden ,id_usuario , fecha_orden, json_purchase_order) VALUES (? ,? , ? ,?)');
         $statement->bindParam(1, $order_id, PDO::PARAM_STR);
         $statement->bindParam(2, $id_usuario, PDO::PARAM_STR);
         $statement->bindParam(3, $fecha, PDO::PARAM_STR);
@@ -244,7 +244,7 @@
     }
 
     function insertOrdenDeVenta ($id_usuario, $fecha, $json_so){ //CAMBIAR ID_USUARIO POR SUBCONSULTA A LA TABLA USUARIOS
-        $statement = Flight::db()->prepare('INSERT INTO Ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? , ? ,?)');
+        $statement = Flight::db()->prepare('INSERT INTO ordenes_venta (id_usuario , fecha_orden, json_sales_order) VALUES (? , ? ,?)');
         $statement->bindParam(1, $id_usuario, PDO::PARAM_STR);
         $statement->bindParam(2, $fecha, PDO::PARAM_STR);
         $statement->bindParam(3, $json_so, PDO::PARAM_STR);
@@ -377,7 +377,7 @@
 
         if (verificarToken($token)){
             //Ejecutar una consula SQL
-            $statement = $db->query('SELECT OC.id_Orden, OC.id_usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM Ordenes_compra OC JOIN usuarios U ON OC.id_usuario = U.id_usuario');
+            $statement = $db->query('SELECT OC.id_Orden, OC.id_usuario, OC.fecha_Orden, OC.json_Purchase_Order, U.empresa , U.email FROM ordenes_compra OC JOIN usuarios U ON OC.id_usuario = U.id_usuario');
             //Verificar si es cliente basicamente
 
             //Obtener los resultados de la tabla
