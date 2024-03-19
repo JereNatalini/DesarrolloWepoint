@@ -27,9 +27,9 @@
 
         if (!isset($headers['Authorization'])) {
             http_response_code(401);
-            echo json_encode(array("mensaje" => "Token no proporcionado", "headers" => $headers));
+            echo json_encode(array("mensaje" => "Token no proporcionado", "headers" => print_r($headers, true)));
             exit;
-        }        
+        }                
 
         $authorizationHeader = $headers['Authorization'];
         $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
