@@ -6,7 +6,7 @@ RewriteCond %{HTTP:Authorization} ^(.*)
 RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
 <IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "no-cors"
+    Header set Access-Control-Allow-Origin *
 </IfModule>
 
 # Resto de las reglas de reescritura
