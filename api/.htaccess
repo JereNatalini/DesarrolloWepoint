@@ -1,7 +1,17 @@
 RewriteEngine On
+
+# Pasar el encabezado de autorización a PHP
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+# Establecer el encabezado Access-Control-Allow-Origin
+Header set Access-Control-Allow-Origin "*"
+
+# Resto de las reglas de reescritura
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php [QSA,L]
+
 RewriteBase /api
 Options -Indexes
 
