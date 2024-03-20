@@ -21,7 +21,7 @@
 
     Flight::route('OPTIONS /*', function(){
         // Establecer los encabezados CORS para permitir solicitudes preflight desde cualquier origen
-        header("Access-Control-Allow-Origin: http://localhost:5173"); // Reemplaza esto con el origen correcto
+        header("Access-Control-Allow-Origin: *"); // Reemplaza esto con el origen correcto
         header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
         header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
         header("Access-Control-Allow-Credentials: true");
@@ -380,6 +380,11 @@
         $db = Flight::db();
         $request = Flight::request();
         $headers = getallheaders();
+
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: GET");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+        header("Access-Control-Allow-Credentials: true");
 
         if (!isset($headers['Authorization'])) {
             http_response_code(401);
