@@ -1,3 +1,4 @@
+AddHandler application/x-httpd-php80 .php
 RewriteEngine On
 
 # Pasar el encabezado de autorización a PHP
