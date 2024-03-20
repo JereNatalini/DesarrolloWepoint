@@ -392,7 +392,7 @@
             $result = $statement->fetchAll(PDO::FETCH_ASSOC);
 
             //devolver los resultados como Json
-            Flight::json($result);
+            Flight::json($result, JSON_UNESCAPED_SLASHES);
 
         }else{
 
