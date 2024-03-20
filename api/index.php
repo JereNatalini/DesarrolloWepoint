@@ -19,18 +19,14 @@
 
     Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'wepoint', 'W1DjSYZJ0BLP'));
 
-    Flight::route('OPTIONS /*', function(){
-        // Establecer los encabezados CORS para permitir solicitudes preflight desde cualquier origen
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-        header("Access-Control-Allow-Credentials: true");
-        exit;
-    });
     
     Flight::route('POST /po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: GET");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+        header("Access-Control-Allow-Credentials: true");
         
         $headers = getallheaders();
 
