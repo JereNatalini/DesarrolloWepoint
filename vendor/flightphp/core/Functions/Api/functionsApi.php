@@ -1,7 +1,7 @@
 <!-- Funciones dentro de cada endpoint -->
 
 <?php
-
+require 'Functions/Database/functionsDB.php';
 
 function createProductArrayPO($name, $sku, $purchase_rate) {
     return [

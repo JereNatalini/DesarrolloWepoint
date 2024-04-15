@@ -8,6 +8,7 @@
     require 'Functions/Token/Token.php';
     require 'Functions/Class/SaleOrder/sale_order.php';
     require 'Functions/Api/functionsApi.php';
+    require 'Functions/Database/functionsDB.php';
 
     global $token;
     $token = '';
@@ -17,11 +18,7 @@
         return $token;
     }
 
-    //Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'wepoint', 'W1DjSYZJ0BLP'));
-    Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'root', ''));
-    //Flight::register('db', 'PDO', array('mysql:unix_socket=/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock;dbname=wepoint_api', 'root', ''));
-
-
+   
     Flight::route('POST /po', function() {
         $request = Flight::request();
         $po_data = json_decode($request->getBody(), true);
