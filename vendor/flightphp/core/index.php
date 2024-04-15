@@ -9,4 +9,8 @@ Flight::route('GET /test', function () {
     echo 'hello world!';
 });
 
+// Solo rutas, nada de metodos. Los metodos deberian ir en FunctionsApi
+
+
+
 Flight::start();
