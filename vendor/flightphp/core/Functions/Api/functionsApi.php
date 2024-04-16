@@ -1,5 +1,3 @@
-<!-- Funciones dentro de cada endpoint -->
-
 <?php
 require 'Functions/Database/functionsDB.php';
 
