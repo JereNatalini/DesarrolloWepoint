@@ -1,12 +1,12 @@
 <?php
 //Probando action produccion
     require 'flight/Flight.php';
-    require 'Functions/Class/Item/item.php';
-    require 'Functions/Class/PurchaseOrder/purchase_order.php';
-    require 'Functions/Class/PurchaseOrder/po_builder.php';
+    require 'Class/Item/item.php';
+    require 'Class/PurchaseOrder/purchase_order.php';
+    require 'Class/PurchaseOrder/po_builder.php';
     require 'Functions/Zoho/zoho_api.php';
     require 'Functions/Token/Token.php';
-    require 'Functions/Class/SaleOrder/sale_order.php';
+    require 'Class/SaleOrder/sale_order.php';
     require 'Functions/Api/functionsApi.php';
     require 'Functions/Database/functionsDB.php';
 
