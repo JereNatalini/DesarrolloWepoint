@@ -18,24 +18,9 @@
         $po_data = json_decode($request->getBody(), true);
         header("Access-Control-Allow-Origin: *");
         header("Access-Control-Allow-Methods: GET");
-        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
         header("Access-Control-Allow-Credentials: true");
-        
-        $headers = getallheaders();
+    
 
-        if (!isset($headers['Authorization'])) {
-            http_response_code(401);
-            echo json_encode(array("mensaje" => "Token no proporcionado"));
-            exit;
-        }
-
-        $authorizationHeader = $headers['Authorization'];
-        $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
-        
-
-        $datosCliente = verificarToken($tokenCliente);
-
-        if ($datosCliente){
 
             if (!isset($po_data['line_items'])) {
                 Flight::halt(403, json_encode(['error' => 'No se encontraron items en el pedido']));
@@ -162,11 +147,7 @@
             
             Flight::halt(200, 'Orden de Compra Creada');
 
-        }else{
-
-            Flight::halt(403, 'No tienes autorizacion o el usuario no existe, verificar los datos');
-
-        }
+      
 
 
        
@@ -177,22 +158,8 @@
         $body_sale_order = Flight::request(); //validar atributos del body
         $sale_order_data = json_decode($body_sale_order->getBody(), true);
 
-        $headers = getallheaders();
 
-        if (!isset($headers['Authorization'])) {
-            http_response_code(401);
-            echo json_encode(array("mensaje" => "Token no proporcionado"));
-            exit;
-        }
-
-        $authorizationHeader = $headers['Authorization'];
-        $tokenCliente = str_replace("Bearer ", "", $authorizationHeader);
         
-
-
-        $datosCliente = verificarToken($tokenCliente);
-
-        if ($datosCliente){
             if (!isset($sale_order_data['line_items'])) {
                 Flight::halt(403, json_encode(['error' => 'No se encontraron items en la Factura']));
                 return;
@@ -267,12 +234,7 @@
 
             Flight::json(['status' => 'success']);
 
-        }else{
-
-            Flight::halt(403, 'No tienes autorizacion o el usuario no existe, verificar los datos');
-
-        }
-
+     
 
 
 
