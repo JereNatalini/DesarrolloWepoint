@@ -1,5 +1,5 @@
-AddHandler application/x-httpd-php80 .php
 RewriteEngine On
+RewriteBase /
 
 # Pasar el encabezado de autorización a PHP
 RewriteCond %{HTTP:Authorization} ^(.*)
@@ -12,7 +12,4 @@ RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 # Resto de las reglas de reescritura
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.php [QSA,L]
-
-RewriteBase /api
-Options -Indexes
+RewriteRule ^api/(.*)$ index.php?endpoint=$1 [QSA,L]

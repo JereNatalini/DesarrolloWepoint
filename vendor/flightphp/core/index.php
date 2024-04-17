@@ -3,8 +3,12 @@
 //Probando action produccion
     require 'flight/Flight.php';
     require 'Functions/Api/functionsApi.php';
-
-    
+    require 'Functions/Token/Token.php';
+    require 'Class/Item/item.php';
+    require 'Class/PurchaseOrder/purchase_order.php';
+    require 'Class/PurchaseOrder/po_builder.php';
+    require 'Class/SaleOrder/sale_order.php';
+    require 'Functions/Zoho/functionsZoho.php';
 
     Flight::register('db', 'PDO', array('mysql:host=localhost;dbname=wepoint_api', 'root', ''));
     Flight::set('flight.v2.output_buffering', true);
