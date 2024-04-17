@@ -1,7 +1,7 @@
 <?php
     
 
-    $token_zoho = fetchTokenFromDataBase(); 
+    $token_zoho = ''; 
 
 
         function postZohoProductos($jsonItem) {
