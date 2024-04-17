@@ -234,29 +234,9 @@
 
             Flight::json(['status' => 'success']);
 
-     
-
-
-
        
     });
 
-    Flight::route('POST /oAuth', function() {
-        $request = Flight::request();
-        $post_data = $request->data;
-        
-        $email = $post_data['email'];
-        $password = $post_data['password'];
-
-        $cliente = clientExists($email , $password);
-        
-        If ($cliente){
-            $token = generarTokenCliente($email , $password);
-         }else{
-            Flight::halt(403, 'El usuario no existe');
-         }
-        Flight::json(['status' => 'success','token' => $token]);
-    });
     
 
     Flight::route('GET /datosPo', function() {
