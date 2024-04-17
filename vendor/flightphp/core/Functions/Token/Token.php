@@ -3,6 +3,12 @@ require 'vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
+
+/* Aca puede que este el error, por ahi no entra al JWT o al Key 
+
+
+
+
 /*
 Test para generar el token de autenticación 
 */
